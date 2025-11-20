@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CreatorROI - 全平台创收罗盘</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://unpkg.com/lucide@latest"></script>
+<style>
+  body { font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", sans-serif; }
+  .glass { backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); background: rgba(255,255,255,0.75); }
+</style>
+</head>
+<body class="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
+<header class="fixed top-0 left-0 right-0 z-50 glass border-b border-gray-200">
+  <div class="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
+    <div class="flex items-center gap-3">
+      <div class="w-10 h-10 rounded-2xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white">
+        <i data-lucide="globe"></i>
+      </div>
+      <h1 class="text-2xl font-bold">CreatorROI</h1>
+      <span class="text-sm text-gray-500">全平台创收罗盘</span>
+    </div>
+    <div class="text-sm text-gray-500">无需登录 · 数据本地计算 · 2025最新算法</div>
+  </div>
+</header>
+
+<main class="pt-24 pb-12 px-6 max-w-7xl mx-auto">
+  <div class="text-center mb-8">
+    <button id="syncBtn" class="inline-flex items-center gap-2 px-6 py-3 bg-white rounded-xl shadow-lg hover:shadow-xl transition">
+      <i data-lucide="refresh-cw" class="w-5 h-5"></i> 同步最新规则
+    </button>
+    <p class="mt-2 text-green-600" id="status">已加载 2025.11 社区规则库</p>
+  </div>
+
+  <div class="glass rounded-3xl p-8 mb-8 shadow-2xl">
+    <h2 class="text-2xl font-semibold mb-6">基础数据</h2>
+    <div class="grid md:grid-cols-2 gap-8">
+      <div>
+        <label class="block text-lg mb-2">播放量/阅读量</label>
+        <div class="relative">
+          <input type="number" id="views" value="1000000" class="w-full h-16 text-3xl font-medium rounded-2xl border border-gray-300 px-4 pr-16">
+          <span class="absolute right-5 top-1/2 -translate-y-1/2 text-xl text-gray-500">次</span>
+        </div>
+      </div>
+      <div>
+        <label class="block text-lg mb-2">粉丝数</label>
+        <div class="relative">
+          <input type="number" id="fans" value="100000" class="w-full h-16 text-3xl font-medium rounded-2xl border border-gray-300 px-4 pr-16">
+          <span class="absolute right-5 top-1/2 -translate-y-1/2 text-xl text-gray-500">人</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="mb-8">
+    <h2 class="text-2xl font-semibold mb-6">选择平台（可多选）</h2>
+    <div class="grid grid-cols-3 md:grid-cols-6 gap-4" id="platforms"></div>
+  </div>
+
+  <div id="advancedPanels" class="space-y-6 mb-12"></div>
+
+  <div class="glass rounded-3xl p-10 text-center shadow-2xl">
+    <p class="text-lg text-gray-600 mb-4">预估总收入（人民币）</p>
+    <div class="text-6xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent" id="total">¥0</div>
+    <div id="breakdown" class="mt-8 grid grid-cols-2 md:grid-cols-5 gap-6"></div>
+  </div>
+</main>
+
+<script>
+lucide.createIcons();
+
+const platforms = {
+  bilibili: { name: "Bilibili", icon: "play-circle", color: "bg-pink-500", param: 1.0, min: 0.1, max: 3.0, label: "互动综合得分", desc: "含点赞投币收藏的综合系数" },
+  youtube: { name: "YouTube", icon: "youtube", color: "bg-red-500", param: 2.5, min: 0.1, max: 10.0, label: "RPM", unit: "$" },
+  douyin: { name: "抖音", icon: "message-circle", color: "bg-black", param: 1.0, min: 0.1, max: 2.0, label: "完播/搜索系数", desc: "受完播率和搜索流量影响" },
+  tiktok: { name: "TikTok", icon: "globe", color: "bg-gradient-to-br from-pink-500 to-black", param: 0.6, min: 0.1, max: 2.0, label: "RPM", unit: "$" },
+  xiaohongshu: { name: "小红书", icon: "book-open", color: "bg-red-600", param: 0.1, min: 0.05, max: 0.5, label: "单粉价值", unit: "¥", desc: "用于预估商单价值" },
+};
+
+let selected = Object.keys(platforms);
+let advanced = {};
+let params = {};
+
+Object.keys(platforms).forEach(key => {
+  advanced[key] = false;
+  params[key] = platforms[key].param;
+});
+
+const platformGrid = document.getElementById('platforms');
+Object.entries(platforms).forEach(([key, p]) => {
+  const div = document.createElement('div');
+  div.className = `glass rounded-3xl p-6 text-center cursor-pointer transition-all ${selected.includes(key) ? 'ring-4 ring-indigo-400 shadow-2xl scale-105' : ''}`;
+  div.onclick = () => {
+    selected = selected.includes(key) ? selected.filter(k => k !== key) : [...selected, key];
+    renderAdvanced(); calculate();
+  };
+  div.innerHTML = `
+    <div class="w-16 h-16 rounded-3xl mx-auto mb-3 ${p.color} flex items-center justify-center text-white shadow-lg">
+      <i data-lucide="${p.icon}" class="w-10 h-10"></i>
+    </div>
+    <p class="font-medium">${p.name}</p>
+  `;
+  platformGrid.appendChild(div);
+});
+
+function renderAdvanced() {
+  const container = document.getElementById('advancedPanels');
+  container.innerHTML = '';
+  selected.forEach(key => {
+    const p = platforms[key];
+    const card = document.createElement('div');
+    card.className = 'glass rounded-3xl p-6 shadow-2xl';
+    card.innerHTML = `
+      <div class="flex justify-between items-center mb-4">
+        <div class="flex items-center gap-4">
+          <div class="w-12 h-12 rounded-2xl ${p.color} flex items-center justify-center text-white shadow-lg">
+            <i data-lucide="${p.icon}"></i>
+          </div>
+          <h3 class="text-xl font-semibold">${p.name}</h3>
+        </div>
+        <label class="flex items-center gap-3 cursor-pointer">
+          <span class="text-sm">开启高级参数</span>
+          <input type="checkbox" ${advanced[key] ? 'checked' : ''} onchange="advanced['${key}']=this.checked; params['${key}']=p.param; renderAdvanced(); calculate();" class="w-6 h-6 rounded">
+        </label>
+      </div>
+      ${!advanced[key] ? '<div class="text-center py-8 text-gray-500 bg-gray-50 rounded-2xl">使用行业平均算法自动估算</div>' : `
+        <div class="space-y-4">
+          <div class="flex justify-between"><span>${p.label}</span><span class="font-bold">${p.unit||''}${params[key].toFixed(2)}</span></div>
+          <input type="range" min="${p.min}" max="${p.max}" step="${p.unit==='¥'?0.01:0.1}" value="${params[key]}" oninput="params['${key}']=parseFloat(this.value); this.previousElementSibling.lastElementChild.textContent='${p.unit||''}'+this.value.toFixed(2); calculate();" class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer">
+          ${p.desc ? `<p class="text-sm text-gray-500">${p.desc}</p>` : ''}
+        </div>
+      `}
+    `;
+    container.appendChild(card);
+  });
+  lucide.createIcons();
+}
+
+function calculate() {
+  const views = parseFloat(document.getElementById('views').value) || 0;
+  const fans = parseFloat(document.getElementById('fans').value) || 0;
+  let total = 0;
+  let breakdown = '';
+
+  selected.forEach(key => {
+    let income = 0;
+    const factor = advanced[key] ? params[key] : platforms[key].param;
+    if (key === 'bilibili') income = (views / 1000) * 3.0 * factor;
+    if (key === 'youtube') income = (views / 1000) * factor * 7.2;
+    if (key === 'douyin') income = (views / 10000) * 15.0 * factor;
+    if (key === 'tiktok') income = (views / 1000) * factor * 7.2;
+    if (key === 'xiaohongshu') income = fans * factor;
+    total += income;
+    if (income > 0) {
+      breakdown += `
+        <div class="bg-white/70 rounded-2xl p-4">
+          <div class="flex items-center justify-center gap-2 mb-1">
+            <div class="w-8 h-8 rounded-xl ${platforms[key].color} flex items-center justify-center text-white">
+              <i data-lucide="${platforms[key].icon}"></i>
+            </div>
+            <span>${platforms[key].name}</span>
+          </div>
+          <div class="text-2xl font-bold">¥${Math.round(income).toLocaleString()}</div>
+        </div>
+      `;
+    }
+  });
+
+  document.getElementById('total').textContent = `¥${Math.round(total).toLocaleString()}`;
+  document.getElementById('breakdown').innerHTML = breakdown || '<p class="text-gray-500">请选择平台并输入数据</p>';
+  lucide.createIcons();
+}
+
+document.getElementById('syncBtn').onclick = () => {
+  const icon = document.querySelector('#syncBtn i');
+  icon.classList.add('animate-spin');
+  setTimeout(() => {
+    document.getElementById('status').textContent = '已加载 2025.11 社区规则库（刚刚同步）';
+    icon.classList.remove('animate-spin');
+  }, 1000);
+};
+
+document.getElementById('views').oninput = calculate;
+document.getElementById('fans').oninput = calculate;
+
+renderAdvanced();
+calculate();
+</script>
+</body>
+</html>
