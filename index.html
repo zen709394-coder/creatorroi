@@ -31,7 +31,7 @@
   </div>
 </header>
 
-<main class="pt-24 pb-12 px-6 max-w-7xl mx-auto">
+<main class="pt-24 pb-12 px-3 sm:px-4 md:px-6 max-w-7xl mx-auto">
   <div class="text-center mb-8">
     <button id="syncBtn" class="inline-flex items-center gap-2 px-6 py-3 bg-white rounded-xl shadow-lg hover:shadow-xl transition">
       <i data-lucide="refresh-cw" class="w-5 h-5"></i> <span data-i18n="sync">同步最新规则</span>
@@ -39,7 +39,7 @@
     <p class="mt-2 text-green-600" id="status" data-i18n="status_loaded">已加载 2025.11 社区规则库</p>
   </div>
 
-  <div class="glass rounded-3xl p-8 mb-8 shadow-2xl">
+  <div class="glass rounded-3xl p-6 sm:p-8 mb-8 shadow-2xl">
     <h2 class="text-2xl font-semibold mb-6" data-i18n="basic_data">基础数据</h2>
     <div class="grid md:grid-cols-2 gap-8">
       <div>
@@ -61,21 +61,22 @@
 
   <div class="mb-8">
     <h2 class="text-2xl font-semibold mb-6" data-i18n="platform_select">选择平台（可多选）</h2>
-    <div class="grid grid-cols-3 md:grid-cols-6 gap-4" id="platforms"></div>
+    <!-- 响应式间距和列数调整 -->
+    <div class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-x-28 gap-y-26" id="platforms"></div>
   </div>
 
   <div id="advancedPanels" class="space-y-6 mb-12"></div>
 
-  <div class="glass rounded-3xl p-10 text-center shadow-2xl">
+  <div class="glass rounded-3xl p-6 sm:p-10 text-center shadow-2xl">
     <p class="text-lg text-gray-600 mb-4" id="incomeLabel" data-i18n="estimated_income">预估总收入（人民币）</p>
     <div class="text-6xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent" id="total">¥0</div>
     <!-- 分析对比图 -->
     <div id="incomeChart" class="my-10 flex justify-center"></div>
-    <div id="breakdown" class="mt-8 grid grid-cols-2 md:grid-cols-5 gap-6"></div>
+    <div id="breakdown" class="mt-8 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-6"></div>
   </div>
 </main>
 
-<footer class="max-w-7xl mx-auto px-6 mt-6 mb-4 text-center text-gray-500">
+<footer class="max-w-7xl mx-auto px-3 sm:px-6 mt-6 mb-4 text-center text-gray-500">
   <div id="visitCount" class="mb-1">访问量：<span>...</span></div>
   <div data-i18n="contact">联系方式：<a href="mailto:49213371@qq.com" class="underline">49213371@qq.com</a></div>
 </footer>
@@ -101,6 +102,8 @@ const translations = {
     contact: '联系方式：<a href="mailto:49213371@qq.com" class="underline">49213371@qq.com</a>',
     please_choose: "请选择平台并输入数据",
     compare_chart: "平台对比分析",
+    official_doc: "官方说明",
+    docs: "文档"
   },
   en: {
     slogan: "Creator Revenue Compass",
@@ -120,6 +123,8 @@ const translations = {
     contact: 'Contact: <a href="mailto:49213371@qq.com" class="underline">49213371@qq.com</a>',
     please_choose: "Please select platforms and enter data",
     compare_chart: "Platform Comparison",
+    official_doc: "Official Guide",
+    docs: "Docs"
   }
 };
 let lang = localStorage.getItem('creatorroi_lang') || 'zh';
@@ -151,34 +156,72 @@ document.addEventListener("DOMContentLoaded", ()=>{
 lucide.createIcons();
 
 const platforms = {
-  bilibili: { 
-    name: { zh: "Bilibili", en: "Bilibili" }, 
-    icon: "play-circle", color: "bg-pink-500", param: 1.0, min: 0.1, max: 3.0, 
-    label: { zh: "互动综合得分", en: "Interaction Score" }, 
-    desc: { zh: "含点赞投币收藏的综合系数", en: "Comprehensive score incl. likes, coin, collects" } 
+  bilibili: {
+    name: { zh: "Bilibili", en: "Bilibili" },
+    icon: "play-circle",
+    color: "bg-pink-500", param: 1.0, min: 0.1, max: 3.0,
+    label: { zh: "互动综合得分", en: "Interaction Score" },
+    desc: {
+      zh: "该系数反映了视频的点赞、投币、收藏等互动表现，影响收益单价。权重说明请参阅B站UP主帮助中心。",
+      en: "Comprehensive coefficient reflecting likes, coins, and collections, influencing income per view. See Bilibili Official Guide."
+    },
+    desc_link: {
+      zh: "https://member.bilibili.com/platform/upload/guide/revenue/",
+      en: "https://member.bilibili.com/platform/upload/guide/revenue/"
+    }
   },
-  youtube: { 
-    name: { zh: "YouTube", en: "YouTube" }, 
-    icon: "youtube", color: "bg-red-500", param: 2.5, min: 0.1, max: 10.0, 
-    label: { zh: "RPM", en: "RPM" }, unit: "$" 
+  youtube: {
+    name: { zh: "YouTube", en: "YouTube" },
+    icon: "youtube", color: "bg-red-500", param: 2.5, min: 0.1, max: 10.0,
+    label: { zh: "RPM", en: "RPM" }, unit: "$",
+    desc: {
+      zh: "RPM为每千次观看对应的创作者收益，具体受受众国家、广告类型等影响。参见YouTube官方RPM定义。",
+      en: "RPM is creator's revenue per 1,000 views, affected by audience country, ad type, etc. See YouTube RPM explanation."
+    },
+    desc_link: {
+      zh: "https://support.google.com/youtube/answer/10297582?hl=zh-Hans",
+      en: "https://support.google.com/youtube/answer/10297582?hl=en"
+    }
   },
-  douyin: { 
-    name: { zh: "抖音", en: "Douyin" }, 
-    icon: "message-circle", color: "bg-black", param: 1.0, min: 0.1, max: 2.0, 
-    label: { zh: "完播/搜索系数", en: "Retention/Search Factor" }, 
-    desc: { zh: "受完播率和搜索流量影响", en: "Affected by completion & search traffic" } 
+  douyin: {
+    name: { zh: "抖音", en: "Douyin" },
+    icon: "message-circle", color: "bg-black", param: 1.0, min: 0.1, max: 2.0,
+    label: { zh: "完播/搜索系数", en: "Retention/Search Factor" },
+    desc: {
+      zh: "该项反映视频完播率和流量来源（如推荐、搜索）的综合影响，直接影响变现单价。详见抖音官方创作者学院。",
+      en: "Reflects retention and search traffic, which directly influences monetization unit price. See Douyin Creator Academy."
+    },
+    desc_link: {
+      zh: "https://www.douyin.com/cn/college/article/7005456572957095943",
+      en: "https://www.douyin.com/cn/college/article/7005456572957095943"
+    }
   },
-  tiktok: { 
-    name: { zh: "TikTok", en: "TikTok" }, 
-    icon: "globe", color: "bg-gradient-to-br from-pink-500 to-black", param: 0.6, min: 0.1, max: 2.0, 
-    label: { zh: "RPM", en: "RPM" }, unit: "$" 
+  tiktok: {
+    name: { zh: "TikTok", en: "TikTok" },
+    icon: "globe", color: "bg-gradient-to-br from-pink-500 to-black", param: 0.6, min: 0.1, max: 2.0,
+    label: { zh: "RPM", en: "RPM" }, unit: "$",
+    desc: {
+      zh: "TikTok RPM为每千次观看获取的创作者收入，具体受地区、内容类型等多因素影响，详情参考TikTok Help Center。",
+      en: "TikTok RPM is earnings per 1,000 views, influenced by region & content type. See related TikTok Help Center article."
+    },
+    desc_link: {
+      zh: "https://support.tiktok.com/zh/business-and-creator/creator-portal/",
+      en: "https://support.tiktok.com/en/business-and-creator/creator-portal/"
+    }
   },
-  xiaohongshu: { 
-    name: { zh: "小红书", en: "Xiaohongshu" }, 
-    icon: "book-open", color: "bg-red-600", param: 0.1, min: 0.05, max: 0.5, 
-    label: { zh: "单粉价值", en: "Per-follower Value" }, unit: "¥", 
-    desc: { zh: "用于预估商单价值", en: "Used to estimate business order value" } 
-  },
+  xiaohongshu: {
+    name: { zh: "小红书", en: "Xiaohongshu" },
+    icon: "book-open", color: "bg-red-600", param: 0.1, min: 0.05, max: 0.5,
+    label: { zh: "单粉价值", en: "Per-follower Value" }, unit: "¥",
+    desc: {
+      zh: "该系数用于预估品牌或商单合作时单个粉丝价值，具体算法可参考小红书创作者学院说明。",
+      en: "Estimates the value per follower for brand/commerce deals, see Xiaohongshu Creator Academy for methods."
+    },
+    desc_link: {
+      zh: "https://www.xiaohongshu.com/college/",
+      en: "https://www.xiaohongshu.com/college/"
+    }
+  }
 };
 
 let selected = Object.keys(platforms);
@@ -190,7 +233,7 @@ function renderPlatforms() {
   platformGrid.innerHTML = '';
   Object.entries(platforms).forEach(([key, p]) => {
     const div = document.createElement('div');
-    div.className = `glass rounded-3xl p-6 text-center cursor-pointer transition-all ${selected.includes(key) ? 'ring-4 ring-indigo-400 shadow-2xl scale-105' : ''}`;
+    div.className = `glass rounded-3xl p-5 md:p-6 text-center cursor-pointer transition-all ${selected.includes(key) ? 'ring-4 ring-indigo-400 shadow-2xl scale-105' : 'hover:ring-2 hover:ring-indigo-300'} min-w-[120px]`;
     div.onclick = () => {
       if (selected.includes(key)) selected = selected.filter(k => k !== key);
       else selected = [...selected, key];
@@ -216,7 +259,11 @@ function renderAdvanced() {
   selected.forEach(key => {
     const p = platforms[key];
     const card = document.createElement('div');
-    card.className = 'glass rounded-3xl p-6 shadow-2xl';
+    card.className = 'glass rounded-3xl p-6 shadow-2xl mb-4';
+    // 描述和官方说明链接
+    const advDesc = p.desc && p.desc_link
+      ? `<p class="text-sm text-gray-500 mt-2">${p.desc[lang]} <a href="${p.desc_link[lang]}" target="_blank" class="underline text-indigo-600 ml-1" rel="noopener">[${translations[lang][lang==='zh'?'official_doc':'docs']}]</a></p>`
+      : (p.desc ? `<p class="text-sm text-gray-500 mt-2">${p.desc[lang]}</p>` : '');
     card.innerHTML = `
       <div class="flex justify-between items-center mb-4">
         <div class="flex items-center gap-4">
@@ -230,15 +277,15 @@ function renderAdvanced() {
           <input type="checkbox" ${advanced[key] ? 'checked' : ''} data-key="${key}" class="w-6 h-6 rounded adv-switch">
         </label>
       </div>
-      <div class="adv-content">${!advanced[key] ? 
-        `<div class="text-center py-8 text-gray-500 bg-gray-50 rounded-2xl">${translations[lang]['auto_estimate']}</div>` : `
-        <div class="space-y-4">
+      <div class="adv-content">${!advanced[key] ?
+        `<div class="text-center py-8 text-gray-500 bg-gray-50 rounded-2xl">${translations[lang]['auto_estimate']}</div>` :
+        `<div class="space-y-4">
           <div class="flex justify-between"><span>${p.label[lang]}</span>
             <span class="font-bold">${p.unit||''}<span class="param-value">${params[key].toFixed(2)}</span></span></div>
           <input type="range" min="${p.min}" max="${p.max}" step="${p.unit==='¥'?0.01:0.1}" value="${params[key]}" data-key="${key}" class="param-range w-full">
-          ${p.desc ? `<p class="text-sm text-gray-500">${p.desc[lang]}</p>` : ''}
-        </div>
-      `}
+          ${advDesc}
+        </div>`
+      }
       </div>
     `;
     container.appendChild(card);
@@ -303,36 +350,29 @@ function calculate() {
 // 分析对比图
 function renderIncomeChart(incomes) {
   const chartDiv = document.getElementById('incomeChart');
-  // 若无数据
   const keys = Object.keys(incomes).filter(k=>incomes[k]>0);
   if(keys.length===0){
     chartDiv.innerHTML = "";
     return;
   }
-  // 柱状对比, 最大值归一
   const max = Math.max(...keys.map(k=>incomes[k]));
   let width = Math.max(300, 80*keys.length), height = 200;
   let unit = lang === 'zh' ? "元" : "CNY";
-  // 标题
   let html = `<div class="mb-2 text-gray-500 text-sm">${translations[lang]["compare_chart"]}</div>`;
   html += `<svg width="${width}" height="${height}" style="background:none;overflow:visible;">`;
-  // 坐标轴
   html += `<line x1="32" y1="10" x2="32" y2="${height-30}" stroke="#BBB" stroke-width="1"/>
     <line x1="32" y1="${height-30}" x2="${width-10}" y2="${height-30}" stroke="#BBB" stroke-width="1"/>`;
-  // Y轴刻度
   let steps = max<2? [0,max]:[0,Math.ceil(max/2),max];
   steps.forEach((v,i)=> {
     let y = (height-30) - (height-60)*(v/(max||1));
     html += `<text x="1" y="${y+4}" font-size="12" fill="#888">${Math.round(v).toLocaleString()}${unit}</text>`;
     html += `<line x1="28" y1="${y}" x2="32" y2="${y}" stroke="#BBB" stroke-width="1"/>`;
   });
-  // 柱状
   keys.forEach((k,i)=>{
     let x = 48 + i * ((width-64)/keys.length);
     let w = Math.max(28, ((width-80)/keys.length)-10);
     let barH = (incomes[k]/max)*(height-60);
     let y0 = (height-30)-barH;
-    // 渐变填充
     html += `
       <rect x="${x}" y="${y0}" width="${w}" height="${barH}" rx="9" fill="url(#g${k})" />
       <defs>
@@ -364,7 +404,6 @@ document.getElementById('fans').oninput = calculate;
 renderAdvanced();
 calculate();
 
-// 同步按钮状态
 document.getElementById('syncBtn').onclick = () => {
   const icon = document.querySelector('#syncBtn i');
   icon.classList.add('animate-spin');
