@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>CreatorROI - 全平台创收罗盘</title>
+<title>CreatorROI - 热门平台创收罗盘</title>
 <script src="https://cdn.tailwindcss.com"></script>
 <script src="https://unpkg.com/lucide@latest"></script>
 <style>
@@ -18,88 +18,172 @@
       <div class="w-10 h-10 rounded-2xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white">
         <i data-lucide="globe"></i>
       </div>
-      <h1 class="text-2xl font-bold">CreatorROI</h1>
-      <span class="text-sm text-gray-500">全平台创收罗盘</span>
+      <h1 class="text-2xl font-bold" id="brandName">CreatorROI</h1>
+      <span class="text-sm text-gray-500" data-i18n="slogan">全平台创收罗盘</span>
     </div>
-    <div class="text-sm text-gray-500">无需登录 · 数据本地计算 · 同步平台最新规则 · 数据仅供参考实际以官方平台为准</div>
+    <div class="flex items-center gap-3 text-sm text-gray-500">
+      <span id="headerNote" data-i18n="header_note">无需登录 · 数据本地计算 · 同步平台最新规则 · 数据仅供参考实际以官方平台为准</span>
+      <!-- 语言切换按钮 -->
+      <button id="langBtn" class="ml-6 px-4 py-1 rounded-xl border border-gray-300 bg-white transition hover:bg-indigo-50 font-medium">
+        EN
+      </button>
+    </div>
   </div>
 </header>
 
 <main class="pt-24 pb-12 px-6 max-w-7xl mx-auto">
   <div class="text-center mb-8">
     <button id="syncBtn" class="inline-flex items-center gap-2 px-6 py-3 bg-white rounded-xl shadow-lg hover:shadow-xl transition">
-      <i data-lucide="refresh-cw" class="w-5 h-5"></i> 同步最新规则
+      <i data-lucide="refresh-cw" class="w-5 h-5"></i> <span data-i18n="sync">同步最新规则</span>
     </button>
-    <p class="mt-2 text-green-600" id="status">已加载 2025.11 社区规则库</p>
+    <p class="mt-2 text-green-600" id="status" data-i18n="status_loaded">已加载 2025.11 社区规则库</p>
   </div>
 
   <div class="glass rounded-3xl p-8 mb-8 shadow-2xl">
-    <h2 class="text-2xl font-semibold mb-6">基础数据</h2>
+    <h2 class="text-2xl font-semibold mb-6" data-i18n="basic_data">基础数据</h2>
     <div class="grid md:grid-cols-2 gap-8">
       <div>
-        <label class="block text-lg mb-2">播放量/阅读量</label>
+        <label class="block text-lg mb-2" data-i18n="views_label">播放量/阅读量</label>
         <div class="relative">
           <input type="number" id="views" value="1000000" class="w-full h-16 text-3xl font-medium rounded-2xl border border-gray-300 px-4 pr-16">
-          <span class="absolute right-5 top-1/2 -translate-y-1/2 text-xl text-gray-500">次</span>
+          <span class="absolute right-5 top-1/2 -translate-y-1/2 text-xl text-gray-500" data-i18n="times">次</span>
         </div>
       </div>
       <div>
-        <label class="block text-lg mb-2">粉丝数</label>
+        <label class="block text-lg mb-2" data-i18n="fans_label">粉丝数</label>
         <div class="relative">
           <input type="number" id="fans" value="100000" class="w-full h-16 text-3xl font-medium rounded-2xl border border-gray-300 px-4 pr-16">
-          <span class="absolute right-5 top-1/2 -translate-y-1/2 text-xl text-gray-500">人</span>
+          <span class="absolute right-5 top-1/2 -translate-y-1/2 text-xl text-gray-500" data-i18n="people">人</span>
         </div>
       </div>
     </div>
   </div>
 
   <div class="mb-8">
-    <h2 class="text-2xl font-semibold mb-6">选择平台（可多选）</h2>
+    <h2 class="text-2xl font-semibold mb-6" data-i18n="platform_select">选择平台（可多选）</h2>
     <div class="grid grid-cols-3 md:grid-cols-6 gap-4" id="platforms"></div>
   </div>
 
   <div id="advancedPanels" class="space-y-6 mb-12"></div>
 
   <div class="glass rounded-3xl p-10 text-center shadow-2xl">
-    <p class="text-lg text-gray-600 mb-4">预估总收入（人民币）</p>
+    <p class="text-lg text-gray-600 mb-4" id="incomeLabel" data-i18n="estimated_income">预估总收入（人民币）</p>
     <div class="text-6xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent" id="total">¥0</div>
+    <!-- 分析对比图 -->
+    <div id="incomeChart" class="my-10 flex justify-center"></div>
     <div id="breakdown" class="mt-8 grid grid-cols-2 md:grid-cols-5 gap-6"></div>
   </div>
 </main>
 
 <footer class="max-w-7xl mx-auto px-6 mt-6 mb-4 text-center text-gray-500">
   <div id="visitCount" class="mb-1">访问量：<span>...</span></div>
-  <div>联系方式：<a href="mailto:49213371@qq.com" class="underline">49213371@qq.com</a></div>
+  <div data-i18n="contact">联系方式：<a href="mailto:49213371@qq.com" class="underline">49213371@qq.com</a></div>
 </footer>
 
 <script>
-// 使用localStorage统计访问量
-(function countVisits() {
-  let count = +localStorage.getItem('creatorroi_visit_count') || 0;
-  count++;
-  localStorage.setItem('creatorroi_visit_count', count);
-  document.getElementById('visitCount').innerHTML = '访问量：<span>' + count.toLocaleString() + '</span>';
-})();
+// ==== 多语言配置 ====
+const translations = {
+  zh: {
+    slogan: "全平台创收罗盘",
+    header_note: "无需登录 · 数据本地计算 · 同步平台最新规则 · 数据仅供参考实际以官方平台为准",
+    sync: "同步最新规则",
+    status_loaded: "已加载 2025.11 社区规则库",
+    status_synced: "已加载 2025.11 社区规则库（刚刚同步）",
+    basic_data: "基础数据",
+    views_label: "播放量/阅读量",
+    times: "次",
+    fans_label: "粉丝数",
+    people: "人",
+    platform_select: "选择平台（可多选）",
+    advanced_switch: "开启高级参数",
+    auto_estimate: "使用行业平均算法自动估算",
+    estimated_income: "预估总收入（人民币）",
+    contact: '联系方式：<a href="mailto:49213371@qq.com" class="underline">49213371@qq.com</a>',
+    please_choose: "请选择平台并输入数据",
+    compare_chart: "平台对比分析",
+  },
+  en: {
+    slogan: "Creator Revenue Compass",
+    header_note: "No login required · All data is local · Rules stay synchronized · All estimates are for reference only",
+    sync: "Sync Latest Rules",
+    status_loaded: "Loaded Nov. 2025 Community Rules",
+    status_synced: "Loaded Nov. 2025 Community Rules (Just Synced)",
+    basic_data: "Basic Data",
+    views_label: "Views/Reads",
+    times: "times",
+    fans_label: "Followers",
+    people: "people",
+    platform_select: "Select Platform(s)",
+    advanced_switch: "Enable Advanced",
+    auto_estimate: "Estimate by industry average algorithm",
+    estimated_income: "Estimated Total Revenue (CNY)",
+    contact: 'Contact: <a href="mailto:49213371@qq.com" class="underline">49213371@qq.com</a>',
+    please_choose: "Please select platforms and enter data",
+    compare_chart: "Platform Comparison",
+  }
+};
+let lang = localStorage.getItem('creatorroi_lang') || 'zh';
+// ==== 多语言切换函数 ====
+function setLang(newLang) {
+  lang = newLang;
+  localStorage.setItem('creatorroi_lang', lang);
+  document.body.setAttribute('lang', lang === 'zh' ? 'zh-CN' : 'en');
+  // 文本替换
+  Array.from(document.querySelectorAll('[data-i18n]')).forEach((el) => {
+    const key = el.getAttribute('data-i18n');
+    // 纯text，或者innerHTML（带链接）
+    if(key==='contact') el.innerHTML = translations[lang][key];
+    else el.textContent = translations[lang][key];
+  });
+  // 按钮变化
+  document.getElementById('langBtn').textContent = lang === 'zh' ? 'EN' : '中';
+  renderAdvanced(); // 该函数会根据语言渲染内容
+  renderPlatforms();
+  calculate();
+}
+// 语言切换事件
+document.addEventListener("DOMContentLoaded", ()=>{
+  document.getElementById('langBtn').onclick = () => setLang(lang === 'zh' ? 'en':'zh');
+  setLang(lang);
+});
 
+// ====== Core Function and Data ======
 lucide.createIcons();
 
 const platforms = {
-  bilibili: { name: "Bilibili", icon: "play-circle", color: "bg-pink-500", param: 1.0, min: 0.1, max: 3.0, label: "互动综合得分", desc: "含点赞投币收藏的综合系数" },
-  youtube: { name: "YouTube", icon: "youtube", color: "bg-red-500", param: 2.5, min: 0.1, max: 10.0, label: "RPM", unit: "$" },
-  douyin: { name: "抖音", icon: "message-circle", color: "bg-black", param: 1.0, min: 0.1, max: 2.0, label: "完播/搜索系数", desc: "受完播率和搜索流量影响" },
-  tiktok: { name: "TikTok", icon: "globe", color: "bg-gradient-to-br from-pink-500 to-black", param: 0.6, min: 0.1, max: 2.0, label: "RPM", unit: "$" },
-  xiaohongshu: { name: "小红书", icon: "book-open", color: "bg-red-600", param: 0.1, min: 0.05, max: 0.5, label: "单粉价值", unit: "¥", desc: "用于预估商单价值" },
+  bilibili: { 
+    name: { zh: "Bilibili", en: "Bilibili" }, 
+    icon: "play-circle", color: "bg-pink-500", param: 1.0, min: 0.1, max: 3.0, 
+    label: { zh: "互动综合得分", en: "Interaction Score" }, 
+    desc: { zh: "含点赞投币收藏的综合系数", en: "Comprehensive score incl. likes, coin, collects" } 
+  },
+  youtube: { 
+    name: { zh: "YouTube", en: "YouTube" }, 
+    icon: "youtube", color: "bg-red-500", param: 2.5, min: 0.1, max: 10.0, 
+    label: { zh: "RPM", en: "RPM" }, unit: "$" 
+  },
+  douyin: { 
+    name: { zh: "抖音", en: "Douyin" }, 
+    icon: "message-circle", color: "bg-black", param: 1.0, min: 0.1, max: 2.0, 
+    label: { zh: "完播/搜索系数", en: "Retention/Search Factor" }, 
+    desc: { zh: "受完播率和搜索流量影响", en: "Affected by completion & search traffic" } 
+  },
+  tiktok: { 
+    name: { zh: "TikTok", en: "TikTok" }, 
+    icon: "globe", color: "bg-gradient-to-br from-pink-500 to-black", param: 0.6, min: 0.1, max: 2.0, 
+    label: { zh: "RPM", en: "RPM" }, unit: "$" 
+  },
+  xiaohongshu: { 
+    name: { zh: "小红书", en: "Xiaohongshu" }, 
+    icon: "book-open", color: "bg-red-600", param: 0.1, min: 0.05, max: 0.5, 
+    label: { zh: "单粉价值", en: "Per-follower Value" }, unit: "¥", 
+    desc: { zh: "用于预估商单价值", en: "Used to estimate business order value" } 
+  },
 };
 
 let selected = Object.keys(platforms);
-let advanced = {};
-let params = {};
-
-// 初始赋值
-Object.keys(platforms).forEach(key => {
-  advanced[key] = false;
-  params[key] = platforms[key].param;
-});
+let advanced = {}, params = {};
+Object.keys(platforms).forEach(key => { advanced[key] = false; params[key] = platforms[key].param; });
 
 const platformGrid = document.getElementById('platforms');
 function renderPlatforms() {
@@ -108,11 +192,8 @@ function renderPlatforms() {
     const div = document.createElement('div');
     div.className = `glass rounded-3xl p-6 text-center cursor-pointer transition-all ${selected.includes(key) ? 'ring-4 ring-indigo-400 shadow-2xl scale-105' : ''}`;
     div.onclick = () => {
-      if (selected.includes(key)) {
-        selected = selected.filter(k => k !== key);
-      } else {
-        selected = [...selected, key];
-      }
+      if (selected.includes(key)) selected = selected.filter(k => k !== key);
+      else selected = [...selected, key];
       renderAdvanced();
       calculate();
       renderPlatforms(); // 选中状态即时更新
@@ -121,7 +202,7 @@ function renderPlatforms() {
       <div class="w-16 h-16 rounded-3xl mx-auto mb-3 ${p.color} flex items-center justify-center text-white shadow-lg">
         <i data-lucide="${p.icon}" class="w-10 h-10"></i>
       </div>
-      <p class="font-medium">${p.name}</p>
+      <p class="font-medium">${p.name[lang]}</p>
     `;
     platformGrid.appendChild(div);
   });
@@ -142,41 +223,39 @@ function renderAdvanced() {
           <div class="w-12 h-12 rounded-2xl ${p.color} flex items-center justify-center text-white shadow-lg">
             <i data-lucide="${p.icon}"></i>
           </div>
-          <h3 class="text-xl font-semibold">${p.name}</h3>
+          <h3 class="text-xl font-semibold">${p.name[lang]}</h3>
         </div>
         <label class="flex items-center gap-3 cursor-pointer">
-          <span class="text-sm">开启高级参数</span>
+          <span class="text-sm">${translations[lang]['advanced_switch']}</span>
           <input type="checkbox" ${advanced[key] ? 'checked' : ''} data-key="${key}" class="w-6 h-6 rounded adv-switch">
         </label>
       </div>
-      <div class="adv-content">${!advanced[key] ? '<div class="text-center py-8 text-gray-500 bg-gray-50 rounded-2xl">使用行业平均算法自动估算</div>' : `
+      <div class="adv-content">${!advanced[key] ? 
+        `<div class="text-center py-8 text-gray-500 bg-gray-50 rounded-2xl">${translations[lang]['auto_estimate']}</div>` : `
         <div class="space-y-4">
-          <div class="flex justify-between"><span>${p.label}</span><span class="font-bold">${p.unit||''}<span class="param-value">${params[key].toFixed(2)}</span></span></div>
+          <div class="flex justify-between"><span>${p.label[lang]}</span>
+            <span class="font-bold">${p.unit||''}<span class="param-value">${params[key].toFixed(2)}</span></span></div>
           <input type="range" min="${p.min}" max="${p.max}" step="${p.unit==='¥'?0.01:0.1}" value="${params[key]}" data-key="${key}" class="param-range w-full">
-          ${p.desc ? `<p class="text-sm text-gray-500">${p.desc}</p>` : ''}
+          ${p.desc ? `<p class="text-sm text-gray-500">${p.desc[lang]}</p>` : ''}
         </div>
       `}
       </div>
     `;
     container.appendChild(card);
   });
-  // 绑定高级参数checkbox事件
   Array.from(container.querySelectorAll('.adv-switch')).forEach(input => {
     input.onchange = function() {
       const key = this.getAttribute('data-key');
       advanced[key] = this.checked;
-      // 切换为高级时重置为初始参数，否则参数变为默认
       params[key] = platforms[key].param;
       renderAdvanced();
       calculate();
     }
   });
-  // 绑定滑动条事件
   Array.from(container.querySelectorAll('.param-range')).forEach(range => {
     range.oninput = function() {
       const key = this.getAttribute('data-key');
       params[key] = parseFloat(this.value);
-      // 滑动时立即更新数值显示
       this.previousElementSibling.querySelector('.param-value').textContent = params[key].toFixed(2);
       calculate();
     }
@@ -189,7 +268,7 @@ function calculate() {
   const fans = parseFloat(document.getElementById('fans').value) || 0;
   let total = 0;
   let breakdown = '';
-
+  let incomes = {};
   selected.forEach(key => {
     let income = 0;
     const factor = advanced[key] ? params[key] : platforms[key].param;
@@ -199,6 +278,7 @@ function calculate() {
     if (key === 'tiktok') income = (views / 1000) * factor * 7.2;
     if (key === 'xiaohongshu') income = fans * factor;
     total += income;
+    incomes[key] = income;
     if (income > 0) {
       breakdown += `
         <div class="bg-white/70 rounded-2xl p-4">
@@ -206,7 +286,7 @@ function calculate() {
             <div class="w-8 h-8 rounded-xl ${platforms[key].color} flex items-center justify-center text-white">
               <i data-lucide="${platforms[key].icon}"></i>
             </div>
-            <span>${platforms[key].name}</span>
+            <span>${platforms[key].name[lang]}</span>
           </div>
           <div class="text-2xl font-bold">¥${Math.round(income).toLocaleString()}</div>
         </div>
@@ -215,24 +295,81 @@ function calculate() {
   });
 
   document.getElementById('total').textContent = `¥${Math.round(total).toLocaleString()}`;
-  document.getElementById('breakdown').innerHTML = breakdown || '<p class="text-gray-500">请选择平台并输入数据</p>';
+  document.getElementById('breakdown').innerHTML = breakdown || `<p class="text-gray-500">${translations[lang]["please_choose"]}</p>`;
+  renderIncomeChart(incomes);
   lucide.createIcons();
 }
 
-// 修复：输入/切换实时计算
+// 分析对比图
+function renderIncomeChart(incomes) {
+  const chartDiv = document.getElementById('incomeChart');
+  // 若无数据
+  const keys = Object.keys(incomes).filter(k=>incomes[k]>0);
+  if(keys.length===0){
+    chartDiv.innerHTML = "";
+    return;
+  }
+  // 柱状对比, 最大值归一
+  const max = Math.max(...keys.map(k=>incomes[k]));
+  let width = Math.max(300, 80*keys.length), height = 200;
+  let unit = lang === 'zh' ? "元" : "CNY";
+  // 标题
+  let html = `<div class="mb-2 text-gray-500 text-sm">${translations[lang]["compare_chart"]}</div>`;
+  html += `<svg width="${width}" height="${height}" style="background:none;overflow:visible;">`;
+  // 坐标轴
+  html += `<line x1="32" y1="10" x2="32" y2="${height-30}" stroke="#BBB" stroke-width="1"/>
+    <line x1="32" y1="${height-30}" x2="${width-10}" y2="${height-30}" stroke="#BBB" stroke-width="1"/>`;
+  // Y轴刻度
+  let steps = max<2? [0,max]:[0,Math.ceil(max/2),max];
+  steps.forEach((v,i)=> {
+    let y = (height-30) - (height-60)*(v/(max||1));
+    html += `<text x="1" y="${y+4}" font-size="12" fill="#888">${Math.round(v).toLocaleString()}${unit}</text>`;
+    html += `<line x1="28" y1="${y}" x2="32" y2="${y}" stroke="#BBB" stroke-width="1"/>`;
+  });
+  // 柱状
+  keys.forEach((k,i)=>{
+    let x = 48 + i * ((width-64)/keys.length);
+    let w = Math.max(28, ((width-80)/keys.length)-10);
+    let barH = (incomes[k]/max)*(height-60);
+    let y0 = (height-30)-barH;
+    // 渐变填充
+    html += `
+      <rect x="${x}" y="${y0}" width="${w}" height="${barH}" rx="9" fill="url(#g${k})" />
+      <defs>
+        <linearGradient id="g${k}" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stop-color="#6366f1"/>
+          <stop offset="100%" stop-color="#a21caf"/>
+        </linearGradient>
+      </defs>
+      <text x="${x+w/2}" y="${y0-8}" text-anchor="middle" font-size="13" fill="#222" font-weight="bold">¥${Math.round(incomes[k]).toLocaleString()}</text>
+      <text x="${x+w/2}" y="${height-9}" text-anchor="middle" font-size="13" fill="#384" font-weight="bold">
+        ${platforms[k].name[lang]}
+      </text>
+    `;
+  });
+  html += "</svg>";
+  chartDiv.innerHTML = html;
+}
+
+// 访问量统计
+(function countVisits() {
+  let count = +localStorage.getItem('creatorroi_visit_count') || 0;
+  count++;
+  localStorage.setItem('creatorroi_visit_count', count);
+  document.getElementById('visitCount').innerHTML = '访问量：<span>' + count.toLocaleString() + '</span>';
+})();
+
 document.getElementById('views').oninput = calculate;
 document.getElementById('fans').oninput = calculate;
-
-// 初始渲染
 renderAdvanced();
 calculate();
 
-// 同步按钮：修改状态显示，但不重新计算
+// 同步按钮状态
 document.getElementById('syncBtn').onclick = () => {
   const icon = document.querySelector('#syncBtn i');
   icon.classList.add('animate-spin');
   setTimeout(() => {
-    document.getElementById('status').textContent = '已加载 2025.11 社区规则库（刚刚同步）';
+    document.getElementById('status').textContent = translations[lang]['status_synced'];
     icon.classList.remove('animate-spin');
   }, 1000);
 };
