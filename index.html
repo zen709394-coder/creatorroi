@@ -67,7 +67,20 @@
   </div>
 </main>
 
+<footer class="max-w-7xl mx-auto px-6 mt-6 mb-4 text-center text-gray-500">
+  <div id="visitCount" class="mb-1">访问量：<span>...</span></div>
+  <div>联系方式：<a href="mailto:49213371@qq.com" class="underline">49213371@qq.com</a></div>
+</footer>
+
 <script>
+// 使用localStorage统计访问量
+(function countVisits() {
+  let count = +localStorage.getItem('creatorroi_visit_count') || 0;
+  count++;
+  localStorage.setItem('creatorroi_visit_count', count);
+  document.getElementById('visitCount').innerHTML = '访问量：<span>' + count.toLocaleString() + '</span>';
+})();
+
 lucide.createIcons();
 
 const platforms = {
@@ -82,27 +95,39 @@ let selected = Object.keys(platforms);
 let advanced = {};
 let params = {};
 
+// 初始赋值
 Object.keys(platforms).forEach(key => {
   advanced[key] = false;
   params[key] = platforms[key].param;
 });
 
 const platformGrid = document.getElementById('platforms');
-Object.entries(platforms).forEach(([key, p]) => {
-  const div = document.createElement('div');
-  div.className = `glass rounded-3xl p-6 text-center cursor-pointer transition-all ${selected.includes(key) ? 'ring-4 ring-indigo-400 shadow-2xl scale-105' : ''}`;
-  div.onclick = () => {
-    selected = selected.includes(key) ? selected.filter(k => k !== key) : [...selected, key];
-    renderAdvanced(); calculate();
-  };
-  div.innerHTML = `
-    <div class="w-16 h-16 rounded-3xl mx-auto mb-3 ${p.color} flex items-center justify-center text-white shadow-lg">
-      <i data-lucide="${p.icon}" class="w-10 h-10"></i>
-    </div>
-    <p class="font-medium">${p.name}</p>
-  `;
-  platformGrid.appendChild(div);
-});
+function renderPlatforms() {
+  platformGrid.innerHTML = '';
+  Object.entries(platforms).forEach(([key, p]) => {
+    const div = document.createElement('div');
+    div.className = `glass rounded-3xl p-6 text-center cursor-pointer transition-all ${selected.includes(key) ? 'ring-4 ring-indigo-400 shadow-2xl scale-105' : ''}`;
+    div.onclick = () => {
+      if (selected.includes(key)) {
+        selected = selected.filter(k => k !== key);
+      } else {
+        selected = [...selected, key];
+      }
+      renderAdvanced();
+      calculate();
+      renderPlatforms(); // 选中状态即时更新
+    };
+    div.innerHTML = `
+      <div class="w-16 h-16 rounded-3xl mx-auto mb-3 ${p.color} flex items-center justify-center text-white shadow-lg">
+        <i data-lucide="${p.icon}" class="w-10 h-10"></i>
+      </div>
+      <p class="font-medium">${p.name}</p>
+    `;
+    platformGrid.appendChild(div);
+  });
+  lucide.createIcons();
+}
+renderPlatforms();
 
 function renderAdvanced() {
   const container = document.getElementById('advancedPanels');
@@ -121,18 +146,40 @@ function renderAdvanced() {
         </div>
         <label class="flex items-center gap-3 cursor-pointer">
           <span class="text-sm">开启高级参数</span>
-          <input type="checkbox" ${advanced[key] ? 'checked' : ''} onchange="advanced['${key}']=this.checked; params['${key}']=p.param; renderAdvanced(); calculate();" class="w-6 h-6 rounded">
+          <input type="checkbox" ${advanced[key] ? 'checked' : ''} data-key="${key}" class="w-6 h-6 rounded adv-switch">
         </label>
       </div>
-      ${!advanced[key] ? '<div class="text-center py-8 text-gray-500 bg-gray-50 rounded-2xl">使用行业平均算法自动估算</div>' : `
+      <div class="adv-content">${!advanced[key] ? '<div class="text-center py-8 text-gray-500 bg-gray-50 rounded-2xl">使用行业平均算法自动估算</div>' : `
         <div class="space-y-4">
-          <div class="flex justify-between"><span>${p.label}</span><span class="font-bold">${p.unit||''}${params[key].toFixed(2)}</span></div>
-          <input type="range" min="${p.min}" max="${p.max}" step="${p.unit==='¥'?0.01:0.1}" value="${params[key]}" oninput="params['${key}']=parseFloat(this.value); this.previousElementSibling.lastElementChild.textContent='${p.unit||''}'+this.value.toFixed(2); calculate();" class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer">
+          <div class="flex justify-between"><span>${p.label}</span><span class="font-bold">${p.unit||''}<span class="param-value">${params[key].toFixed(2)}</span></span></div>
+          <input type="range" min="${p.min}" max="${p.max}" step="${p.unit==='¥'?0.01:0.1}" value="${params[key]}" data-key="${key}" class="param-range w-full">
           ${p.desc ? `<p class="text-sm text-gray-500">${p.desc}</p>` : ''}
         </div>
       `}
+      </div>
     `;
     container.appendChild(card);
+  });
+  // 绑定高级参数checkbox事件
+  Array.from(container.querySelectorAll('.adv-switch')).forEach(input => {
+    input.onchange = function() {
+      const key = this.getAttribute('data-key');
+      advanced[key] = this.checked;
+      // 切换为高级时重置为初始参数，否则参数变为默认
+      params[key] = platforms[key].param;
+      renderAdvanced();
+      calculate();
+    }
+  });
+  // 绑定滑动条事件
+  Array.from(container.querySelectorAll('.param-range')).forEach(range => {
+    range.oninput = function() {
+      const key = this.getAttribute('data-key');
+      params[key] = parseFloat(this.value);
+      // 滑动时立即更新数值显示
+      this.previousElementSibling.querySelector('.param-value').textContent = params[key].toFixed(2);
+      calculate();
+    }
   });
   lucide.createIcons();
 }
@@ -172,6 +219,15 @@ function calculate() {
   lucide.createIcons();
 }
 
+// 修复：输入/切换实时计算
+document.getElementById('views').oninput = calculate;
+document.getElementById('fans').oninput = calculate;
+
+// 初始渲染
+renderAdvanced();
+calculate();
+
+// 同步按钮：修改状态显示，但不重新计算
 document.getElementById('syncBtn').onclick = () => {
   const icon = document.querySelector('#syncBtn i');
   icon.classList.add('animate-spin');
@@ -180,12 +236,6 @@ document.getElementById('syncBtn').onclick = () => {
     icon.classList.remove('animate-spin');
   }, 1000);
 };
-
-document.getElementById('views').oninput = calculate;
-document.getElementById('fans').oninput = calculate;
-
-renderAdvanced();
-calculate();
 </script>
 </body>
 </html>
